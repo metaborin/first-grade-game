@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>アイコン生成</title></head>
+<body>
+<canvas id="c192" width="192" height="192"></canvas>
+<canvas id="c512" width="512" height="512"></canvas>
+<script>
+function drawIcon(canvas, size) {
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,size,size);
+  grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(1,'#16213e');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
+  ctx.strokeStyle='#e94560'; ctx.lineWidth=size*0.05;
+  ctx.strokeRect(size*0.06,size*0.06,size*0.88,size*0.88);
+  // 帽子
+  ctx.fillStyle='#6b3aff';
+  ctx.beginPath(); ctx.moveTo(size*.5,size*.1); ctx.lineTo(size*.36,size*.38); ctx.lineTo(size*.64,size*.38); ctx.closePath(); ctx.fill();
+  // ローブ
+  ctx.fillStyle='#3a6bff'; ctx.fillRect(size*.35,size*.38,size*.3,size*.28);
+  // 星
+  ctx.fillStyle='#ffe55c'; ctx.font='bold '+Math.floor(size*.14)+'px serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('★',size*.5,size*.28);
+  // テキスト
+  ctx.fillStyle='#f5a623'; ctx.font='bold '+Math.floor(size*.09)+'px sans-serif';
+  ctx.textBaseline='alphabetic'; ctx.fillText('まなびRPG',size*.5,size*.85);
+}
+drawIcon(document.getElementById('c192'),192);
+drawIcon(document.getElementById('c512'),512);
+// ダウンロードリンクを自動クリック
+['192','512'].forEach(s => {
+  const c = document.getElementById('c'+s);
+  const a = document.createElement('a');
+  a.download='icon-'+s+'.png'; a.href=c.toDataURL('image/png');
+  document.body.appendChild(a); a.click();
+});
+</script>
+</body>
+</html>

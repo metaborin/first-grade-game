@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="description" content="小学1年生向け国語と算数が学べる2Dドットスタイル学習RPGゲーム。ひらがな・カタカナ・たし算・ひき算を楽しく学ぼう！">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="まなびRPG">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <title>まなびのくに RPG</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+  </div>
+  <div id="loading-screen">
+    <div class="loading-pixel-art">
+      <div class="loading-title">まなびのくに RPG</div>
+      <div class="loading-char">🧙</div>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-text" id="loading-text">よみこみちゅう...</div>
+    </div>
+  </div>
+
+  <!-- Phaser 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+  <!-- Game Modules -->
+  <script src="js/data/hiraganaQuestions.js"></script>
+  <script src="js/data/katakanaQuestions.js"></script>
+  <script src="js/data/mathQuestions.js"></script>
+  <script src="js/data/playerData.js"></script>
+  <script src="js/utils/AudioManager.js"></script>
+  <script src="js/utils/EffectManager.js"></script>
+  <script src="js/scenes/BootScene.js"></script>
+  <script src="js/scenes/TitleScene.js"></script>
+  <script src="js/scenes/SelectSaveScene.js"></script>
+  <script src="js/scenes/NameInputScene.js"></script>
+  <script src="js/scenes/SettingsScene.js"></script>
+  <script src="js/scenes/WorldMapScene.js"></script>
+  <script src="js/scenes/HiraganaScene.js"></script>
+  <script src="js/scenes/KatakanaScene.js"></script>
+  <script src="js/scenes/TashizanScene.js"></script>
+  <script src="js/scenes/HikizanScene.js"></script>
+  <script src="js/scenes/ResultScene.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    // PWA Service Worker 登録
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

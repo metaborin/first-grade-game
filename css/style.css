@@ -1,0 +1,227 @@
+/* ============================================
+   まなびのくに RPG - Global Styles
+   ピクセルアートにじみ防止・レスポンシブ対応
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+/* ============ CSS リセット ============ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============ ルート変数 ============ */
+:root {
+  --color-bg: #0d0d1a;
+  --color-primary: #e94560;
+  --color-secondary: #f5a623;
+  --color-accent: #00e5ff;
+  --color-success: #00e676;
+  --color-pixel-font: 'DotGothic16', monospace;
+}
+
+/* ============ HTML / BODY ============ */
+html {
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-bg);
+  font-family: var(--color-pixel-font);
+  /* タッチ操作の最適化 */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* ============ ゲームコンテナ ============ */
+#game-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+}
+
+/* ============ Phaser Canvas ============ */
+#game-canvas,
+canvas {
+  display: block;
+  /* ピクセルアートのにじみを防止 */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  /* スムージング無効化 */
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* ============ ローディング画面 ============ */
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #16213e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+
+#loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-pixel-art {
+  text-align: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.loading-title {
+  font-family: var(--color-pixel-font);
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  color: #f5a623;
+  text-shadow: 3px 3px 0 #e94560, 6px 6px 0 rgba(0,0,0,0.5);
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  animation: pulse-title 2s ease-in-out infinite;
+}
+
+@keyframes pulse-title {
+  0%, 100% { text-shadow: 3px 3px 0 #e94560, 6px 6px 0 rgba(0,0,0,0.5); }
+  50% { text-shadow: 3px 3px 0 #ff6b35, 0 0 20px rgba(245,166,35,0.8), 6px 6px 0 rgba(0,0,0,0.5); }
+}
+
+.loading-char {
+  font-size: clamp(3rem, 12vw, 5rem);
+  margin: 20px 0;
+  filter: drop-shadow(0 0 10px rgba(245, 166, 35, 0.7));
+  animation: wiggle 1s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-5deg) scale(1); }
+  50% { transform: rotate(5deg) scale(1.1); }
+}
+
+.loading-bar-wrap {
+  width: clamp(200px, 60vw, 320px);
+  height: 16px;
+  background: #1a1a2e;
+  border: 3px solid #e94560;
+  border-radius: 0;
+  margin: 16px auto;
+  overflow: hidden;
+  /* ピクセル風の角 */
+  box-shadow: 0 0 0 2px #0d0d1a, 0 0 0 4px #e94560, 0 0 20px rgba(233,69,96,0.3);
+  image-rendering: pixelated;
+}
+
+.loading-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #e94560, #f5a623, #00e5ff);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s linear infinite;
+  transition: width 0.3s ease;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.loading-text {
+  font-family: var(--color-pixel-font);
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  color: #00e5ff;
+  letter-spacing: 1px;
+  animation: blink 1.2s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============ PWA インストール促進バナー（将来用） ============ */
+#pwa-install-banner {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, #1a1a2e, #16213e);
+  border-top: 2px solid #e94560;
+  padding: 12px 20px;
+  z-index: 8000;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--color-pixel-font);
+}
+
+#pwa-install-banner.visible {
+  display: flex;
+}
+
+#pwa-install-banner span {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+#pwa-install-btn {
+  background: #e94560;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  font-family: var(--color-pixel-font);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 #7a1f30;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+#pwa-install-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #7a1f30;
+}
+
+/* ============ メディアクエリ ============ */
+@media (max-width: 480px) {
+  .loading-title { font-size: 1.3rem; }
+  .loading-char { font-size: 3rem; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .loading-char { font-size: 2rem; margin: 8px 0; }
+  .loading-title { margin-bottom: 8px; }
+}
+
+/* ============ スクロールバー非表示 ============ */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
