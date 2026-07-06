@@ -1,5 +1,5 @@
 // Service Worker for まなびのくに RPG
-const CACHE_NAME = 'manabi-rpg-v1';
+const CACHE_NAME = 'manabi-rpg-v2';
 
 // キャッシュするファイルリスト
 const PRECACHE_ASSETS = [
