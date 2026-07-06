@@ -23,24 +23,17 @@
 }
 
 /* ============ HTML / BODY ============ */
-html {
-  height: 100%;
-  overflow: hidden;
-  background-color: var(--color-bg);
-}
-
-body {
+html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: var(--color-bg);
+  background-color: #000;
+}
+
+body {
   font-family: var(--color-pixel-font);
-  /* 中央配置（PC等広い画面でも中央に表示） */
-  display: flex;
-  align-items: center;
-  justify-content: center;
   /* タッチ操作の最適化 */
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -50,25 +43,19 @@ body {
 }
 
 /* ============ ゲームコンテナ ============ */
+/* Phaserの自動センタリングに任せるため、シンプルに幅・高さ100%のコンテナのみ */
 #game-container {
-  position: fixed;
-  inset: 0;             /* top/right/bottom/left: 0 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-bg);
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 /* ============ Phaser Canvas ============ */
+/* ピクセルアートのにじみ防止のみ。位置はPhaserに完全委任 */
 #game-canvas,
 canvas {
-  display: block;
-  /* ピクセルアートのにじみを防止 */
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
-  /* スムージング無効化 */
   -ms-interpolation-mode: nearest-neighbor;
 }
 

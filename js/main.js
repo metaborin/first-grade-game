@@ -3,13 +3,11 @@
 // ============================================
 
 // ピクセルサイズ設定（スマホ縦向き想定）
-const GAME_WIDTH = 390;
-const GAME_HEIGHT = 720;
+const GAME_WIDTH  = 375;
+const GAME_HEIGHT = 667;
 
 const config = {
   type: Phaser.AUTO,
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
   backgroundColor: '#0d0d1a',
 
   // PixelArt設定（にじみ防止）
@@ -17,14 +15,13 @@ const config = {
   antialias: false,
   roundPixels: true,
 
-  // Scale Manager（レスポンシブ）
+  // Scale Manager — Phaserの自動センタリングに完全委任
   scale: {
+    parent: 'game-container',
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,
-    height: GAME_HEIGHT,
-    parent: 'game-container',
-    canvas: document.getElementById('game-canvas')
+    height: GAME_HEIGHT
   },
 
   // 物理エンジン（軽量設定）
