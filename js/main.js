@@ -80,76 +80,10 @@ const config = {
 // ゲームインスタンスを作成
 const game = new Phaser.Game(config);
 
-// ============================================
-// センタリング修正: Phaserがinline styleでcanvasのleft/topを
-// 直接設定するため、MutationObserverで監視して強制上書きする
-// ============================================
-function applyCenterStyle(canvas) {
-  canvas.style.setProperty('position', 'relative', 'important');
-  canvas.style.setProperty('left', 'auto', 'important');
-  canvas.style.setProperty('top', 'auto', 'important');
-  canvas.style.setProperty('margin-left', 'auto', 'important');
-  canvas.style.setProperty('margin-right', 'auto', 'important');
-  canvas.style.setProperty('display', 'block', 'important');
-}
-
-function setupCanvasCentering() {
-  const container = document.getElementById('game-container');
-  if (!container) return;
-
-  // canvasを取得
-  let canvas = container.querySelector('canvas');
-
-  // canvasが既にあれば即適用
-  if (canvas) applyCenterStyle(canvas);
-
-  // canvasのstyle変更を監視
-  const observeCanvas = (cvs) => {
-    applyCenterStyle(cvs);
-    let applying = false;
-    const observer = new MutationObserver(() => {
-      if (applying) return;
-      applying = true;
-      applyCenterStyle(cvs);
-      applying = false;
-    });
-    observer.observe(cvs, { attributes: true, attributeFilter: ['style'] });
-  };
-
-  if (canvas) {
-    observeCanvas(canvas);
-  } else {
-    // canvasがまだない場合はcontainerを監視してcanvas追加を待つ
-    const containerObserver = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        for (const node of m.addedNodes) {
-          if (node.tagName === 'CANVAS') {
-            observeCanvas(node);
-            containerObserver.disconnect();
-            return;
-          }
-        }
-      }
-    });
-    containerObserver.observe(container, { childList: true });
-  }
-}
-
-// DOMContentLoaded後に実行（Phaserより先に設定しておく）
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupCanvasCentering);
-} else {
-  setupCanvasCentering();
-}
-
-// Phaserゲーム起動後にも再適用
-game.events.once(Phaser.Core.Events.READY, setupCanvasCentering);
-
 // ウィンドウリサイズ対応
 window.addEventListener('resize', () => {
   game.scale.refresh();
 });
-
 
 // スリープ/ウェイク対応（モバイル）
 document.addEventListener('visibilitychange', () => {
