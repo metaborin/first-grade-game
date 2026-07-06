@@ -95,16 +95,21 @@ class NameInputScene extends Phaser.Scene {
       ['な','に','ぬ','ね','の'],
       ['は','ひ','ふ','へ','ほ'],
       ['ま','み','む','め','も'],
+      ['ら','り','る','れ','ろ'],
       ['や','ゆ','よ','わ','ん'],
       ['゛','ぁ','っ','ー','。']
     ];
 
-    const keyW = Math.min((width - 20) / 5 - 4, 56);
-    const keyH = keyW * 0.85;
-    const startX = width / 2 - (keyW * 5 + 4 * 4) / 2 + keyW / 2;
-    const startY = height * 0.3;
-    const gapX = keyW + 4;
-    const gapY = keyH + 4;
+    // 10行のキーが画面内（上部0.28〜下部0.90）に収まるよう動的にサイズ計算
+    const numRows = rows.length;
+    const availableH = height * 0.90 - height * 0.28;
+    const gapSize = 4;
+    const keyH = Math.min(Math.floor((availableH - gapSize * (numRows - 1)) / numRows), 46);
+    const keyW = Math.min((width - 20) / 5 - gapSize, 56, Math.floor(keyH / 0.85));
+    const startX = width / 2 - (keyW * 5 + gapSize * 4) / 2 + keyW / 2;
+    const startY = height * 0.28 + keyH / 2;
+    const gapX = keyW + gapSize;
+    const gapY = keyH + gapSize;
 
     rows.forEach((row, ri) => {
       row.forEach((key, ci) => {
