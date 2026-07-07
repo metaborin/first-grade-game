@@ -20,10 +20,15 @@ class NameInputScene extends Phaser.Scene {
 
     this.cameras.main.fadeIn(300, 0, 0, 0);
     this._createBackground(width, height);
-    this._createHeader(width, height);
-    this._createNameDisplay(width, height);
-    this._createKeyboard(width, height);
-    this._createButtons(width, height);
+
+    // ヘッダーを少し遅らせてポップイン
+    this.time.delayedCall(100, () => this._createHeader(width, height));
+    // 名前表示枠もポップイン
+    this.time.delayedCall(180, () => this._createNameDisplay(width, height));
+    // キーボードはさらに遅らせて行ごとに登場
+    this.time.delayedCall(280, () => this._createKeyboard(width, height));
+    // ボタンは最後
+    this.time.delayedCall(350, () => this._createButtons(width, height));
   }
 
   _createBackground(width, height) {
@@ -33,45 +38,59 @@ class NameInputScene extends Phaser.Scene {
   }
 
   _createHeader(width, height) {
-    this.add.text(width / 2, height * 0.06, 'なまえを いれてね', {
+    const title = this.add.text(width / 2, height * 0.06, 'なまえを いれてね', {
       fontFamily: 'DotGothic16, monospace',
       fontSize: '22px',
       color: '#f5a623',
       stroke: '#0d0d1a',
-      strokeThickness: 4
-    }).setOrigin(0.5);
+      strokeThickness: 4,
+      shadow: { offsetX: 3, offsetY: 3, color: '#0d0d1a', fill: true }
+    }).setOrigin(0.5).setAlpha(0).setScale(0.3);
 
-    this.add.text(width / 2, height * 0.11, '（さいだい 6もじ）', {
+    const sub = this.add.text(width / 2, height * 0.11, '（さいだい 6もじ）', {
       fontFamily: 'DotGothic16, monospace',
       fontSize: '14px',
       color: '#556688'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setAlpha(0);
+
+    // Back.easeOut で弾む登場
+    this.tweens.add({ targets: title, alpha: 1, scaleX: 1, scaleY: 1, duration: 380, ease: 'Back.Out' });
+    this.tweens.add({ targets: sub, alpha: 1, duration: 300, delay: 100 });
   }
 
   _createNameDisplay(width, height) {
-    // 名前表示枠
     const boxW = Math.min(width * 0.85, 320);
     const boxH = 60;
     const boxY = height * 0.2;
 
     this._nameBg = this.add.rectangle(width / 2, boxY, boxW, boxH, 0x1a1a2e)
-      .setStrokeStyle(3, 0x00e5ff);
+      .setStrokeStyle(3, 0x00e5ff)
+      .setAlpha(0).setScale(0.5);
 
-    this._nameText = this.add.text(width / 2, boxY, '_', {
+    this._nameText = this.add.text(width / 2, boxY, ' ', {
       fontFamily: 'DotGothic16, monospace',
       fontSize: '32px',
       color: '#ffffff',
       letterSpacing: 8
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setAlpha(0);
+
+    // Back.easeOut でぷるん登場
+    this.tweens.add({
+      targets: this._nameBg,
+      alpha: 1, scaleX: 1, scaleY: 1,
+      duration: 400, ease: 'Back.Out'
+    });
+    this.tweens.add({ targets: this._nameText, alpha: 1, duration: 300, delay: 150 });
 
     // カーソル点滅
-    this._cursor = this.add.rectangle(0, boxY, 3, 36, 0x00e5ff).setDepth(5);
+    this._cursor = this.add.rectangle(0, boxY, 3, 36, 0x00e5ff).setDepth(5).setAlpha(0);
     this.tweens.add({
       targets: this._cursor,
-      alpha: 0,
+      alpha: { from: 0, to: 1 },
       duration: 500,
       yoyo: true,
-      repeat: -1
+      repeat: -1,
+      delay: 400
     });
 
     this._updateNameDisplay();
@@ -111,44 +130,63 @@ class NameInputScene extends Phaser.Scene {
     const gapX = keyW + gapSize;
     const gapY = keyH + gapSize;
 
+    // 行ごとに時間差で登場（スタッガー演出）
     rows.forEach((row, ri) => {
       row.forEach((key, ci) => {
         const x = startX + ci * gapX;
         const y = startY + ri * gapY;
-        this._createKey(x, y, keyW, keyH, key);
+        this._createKey(x, y, keyW, keyH, key, ri);
       });
     });
   }
 
-  _createKey(x, y, w, h, label) {
+  _createKey(x, y, w, h, label, rowIndex = 0) {
     const isSpecial = ['゛', 'ぁ', 'っ', 'ー', '。'].includes(label);
     const bgColor = isSpecial ? 0x334466 : 0x2a1a4a;
-    const shadow = this.add.rectangle(x + 2, y + 2, w, h, 0x0a0a1a);
+    const delay = rowIndex * 48;
+
+    // スタッガー登場のため初期α=0
+    const shadow = this.add.rectangle(x + 2, y + 2, w, h, 0x0a0a1a).setAlpha(0);
     const btn = this.add.rectangle(x, y, w, h, bgColor)
       .setStrokeStyle(1, 0x445566)
-      .setInteractive({ useHandCursor: true });
+      .setInteractive({ useHandCursor: true })
+      .setAlpha(0)
+      .setScale(0.7);
 
     const txt = this.add.text(x, y, label, {
       fontFamily: 'DotGothic16, monospace',
       fontSize: `${Math.floor(h * 0.5)}px`,
-      color: isSpecial ? '#00e5ff' : '#ffffff'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      color: isSpecial ? '#00e5ff' : '#ffffff',
+      stroke: '#00000044',
+      strokeThickness: 1
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0);
+
+    // Back.easeOut でぷるん登場（行ごとに時間差）
+    this.tweens.add({
+      targets: [btn, txt, shadow],
+      alpha: 1, scaleX: 1, scaleY: 1,
+      duration: 260,
+      delay,
+      ease: 'Back.Out'
+    });
 
     const press = () => {
       AudioManager.playSelect();
       this._inputChar(label);
+      // キー押下火花
+      EffectManager.spawnButtonSpark(this, x, y);
       this.tweens.add({
         targets: [btn, txt],
-        y: y + 2,
-        duration: 50,
+        scaleX: 0.9, scaleY: 0.9,
+        duration: 55,
         yoyo: true
       });
     };
 
     btn.on('pointerdown', press);
     txt.on('pointerdown', press);
-    btn.on('pointerover', () => btn.setFillStyle(isSpecial ? 0x445577 : 0x3a2a5a));
-    btn.on('pointerout', () => btn.setFillStyle(bgColor));
+    btn.on('pointerover', () => { if (btn.alpha > 0.5) btn.setFillStyle(isSpecial ? 0x445577 : 0x3a2a5a); });
+    btn.on('pointerout', () => { if (btn.alpha > 0.5) btn.setFillStyle(bgColor); });
   }
 
   _inputChar(char) {
@@ -255,11 +293,18 @@ class NameInputScene extends Phaser.Scene {
     GameState.saveData = saveData;
 
     AudioManager.playLevelUp();
-    EffectManager.spawnConfetti(this, 30);
+
+    // ハートバースト + 紙吹雪の豪華演出
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height * 0.2;
+    EffectManager.spawnHeartBurst(this, cx, cy);
+    EffectManager.spawnGlowBurst(this, cx, cy + 50);
+    EffectManager.spawnGoalConfetti(this);
+    this.cameras.main.flash(200, 255, 220, 100);
 
     // 難易度選択へ（または直接ワールドへ）
-    this.cameras.main.fadeOut(400, 0, 0, 0);
-    this.time.delayedCall(400, () => {
+    this.cameras.main.fadeOut(500, 0, 0, 0);
+    this.time.delayedCall(500, () => {
       this.scene.start('SettingsScene', { fromNew: true });
     });
   }

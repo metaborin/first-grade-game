@@ -284,10 +284,15 @@ class HiraganaScene extends Phaser.Scene {
     if (correct) {
       // 正解！
       AudioManager.playCorrect();
+      // 強化版正解エフェクト
       EffectManager.playCorrect(this,
         this.scale.width / 2,
         this.scale.height * 0.5
       );
+      // 虫色星パーティクル
+      EffectManager.spawnRainbowStars(this, this.scale.width / 2, this.scale.height * 0.5);
+      // 可読性のためシェイクも強化
+      this.cameras.main.shake(200, 0.011);
 
       // スロットを緑にする
       this._answerSlots.forEach(slot => {
@@ -339,11 +344,19 @@ class HiraganaScene extends Phaser.Scene {
   }
 
   _showResult() {
+    // 全問願演出
+    const correct = this._results.filter(r => r).length;
+    const total = this._results.length;
+    if (correct >= Math.ceil(total * 0.6)) {
+      EffectManager.spawnGoalConfetti(this);
+      this.cameras.main.flash(300, 255, 220, 100);
+    }
+
     // 結果をセーブして ResultScene へ
     GameState.recordResult('hiragana', this._results);
 
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.time.delayedCall(300, () => {
+    this.cameras.main.fadeOut(400, 0, 0, 0);
+    this.time.delayedCall(400, () => {
       this.scene.start('ResultScene', {
         gameKey: 'hiragana',
         results: this._results,

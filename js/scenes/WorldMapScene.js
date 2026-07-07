@@ -5,11 +5,13 @@
 class WorldMapScene extends Phaser.Scene {
   constructor() {
     super({ key: 'WorldMapScene' });
+    this._scrollClouds = [];
   }
 
   create() {
     const { width, height } = this.scale;
     this.cameras.main.fadeIn(400, 0, 0, 0);
+    this._scrollClouds = [];
 
     this._createBackground(width, height);
     this._createMap(width, height);
@@ -17,6 +19,19 @@ class WorldMapScene extends Phaser.Scene {
     this._createUI(width, height);
     this._createAreaButtons(width, height);
     this._startAmbience();
+
+    // 背景光の粒パーティクル
+    EffectManager.createAnimatedBg(this);
+  }
+
+  update() {
+    // 雲のスクロール（パララックス）
+    this._scrollClouds.forEach(c => {
+      c.obj.x += c.speed;
+      if (c.obj.x > this.scale.width + c.obj.width * 2) {
+        c.obj.x = -c.obj.width * 2;
+      }
+    });
   }
 
   _createBackground(width, height) {
@@ -30,11 +45,19 @@ class WorldMapScene extends Phaser.Scene {
     ground.fillStyle(0x4a8a1f);
     ground.fillRect(0, height * 0.55, width, height * 0.45);
 
-    // 雲
+    // 流れる雲（遠景・遅め・山の形）
     for (let i = 0; i < 4; i++) {
-      const cx = (width / 4) * i + Math.random() * width * 0.2;
-      const cy = height * 0.08 + Math.random() * height * 0.15;
-      this._drawCloud(cx, cy);
+      const cx = (width / 4) * i - 30;
+      const cy = height * 0.07 + Math.random() * height * 0.12;
+      const cloud = this._buildScrollCloud(cx, cy, 0.75, 0.20);
+      this._scrollClouds.push({ obj: cloud, speed: 0.14 });
+    }
+    // 近景雲（速め）
+    for (let i = 0; i < 2; i++) {
+      const cx = i * (width / 2) + 20;
+      const cy = height * 0.16 + Math.random() * height * 0.06;
+      const cloud = this._buildScrollCloud(cx, cy, 0.90, 0.30);
+      this._scrollClouds.push({ obj: cloud, speed: 0.28 });
     }
 
     // タイルマップ（道）
@@ -50,24 +73,18 @@ class WorldMapScene extends Phaser.Scene {
     }
   }
 
-  _drawCloud(cx, cy) {
-    const g = this.add.graphics().setAlpha(0.85);
+  _buildScrollCloud(x, y, alpha, scaleRand) {
+    const g = this.add.graphics().setAlpha(alpha);
+    const s = 0.7 + scaleRand * Math.random();
     g.fillStyle(0xffffff);
-    g.fillCircle(cx, cy, 20);
-    g.fillCircle(cx + 22, cy, 26);
-    g.fillCircle(cx + 46, cy, 18);
-    g.fillCircle(cx + 12, cy - 14, 18);
-    g.fillCircle(cx + 32, cy - 18, 20);
-
-    // 雲をゆっくり移動
-    this.tweens.add({
-      targets: g,
-      x: 30,
-      duration: 8000 + Math.random() * 6000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut'
-    });
+    g.fillCircle(0, 0, 18 * s);
+    g.fillCircle(22 * s, -4 * s, 24 * s);
+    g.fillCircle(44 * s, 2 * s, 16 * s);
+    g.fillCircle(12 * s, -14 * s, 16 * s);
+    g.fillCircle(30 * s, -18 * s, 20 * s);
+    g.x = x;
+    g.y = y;
+    return g;
   }
 
   _createMap(width, height) {
@@ -140,24 +157,33 @@ class WorldMapScene extends Phaser.Scene {
   }
 
   _createAreaSign(x, y, label, icon, bgColor, borderColor) {
-    const signBg = this.add.rectangle(x, y, 160, 50, bgColor, 0.9)
-      .setStrokeStyle(2, borderColor);
+    const signBg = this.add.rectangle(x, y, 165, 52, bgColor, 0.92)
+      .setStrokeStyle(2, borderColor)
+      .setAlpha(0).setScale(0.5);
     const signText = this.add.text(x, y - 2, `${icon} ${label}`, {
       fontFamily: 'DotGothic16, monospace',
       fontSize: '16px',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3
-    }).setOrigin(0.5);
+      strokeThickness: 3,
+      shadow: { offsetX: 2, offsetY: 2, color: '#000000', fill: true }
+    }).setOrigin(0.5).setAlpha(0);
 
-    // 看板を揺らす
+    // ぷるん登場
     this.tweens.add({
       targets: [signBg, signText],
-      angle: { from: -1.5, to: 1.5 },
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut'
+      alpha: 1, scaleX: 1, scaleY: 1,
+      duration: 450, ease: 'Back.Out'
+    });
+
+    // 看板を揺らす
+    this.time.delayedCall(500, () => {
+      this.tweens.add({
+        targets: [signBg, signText],
+        angle: { from: -1.5, to: 1.5 },
+        duration: 2200,
+        yoyo: true, repeat: -1, ease: 'Sine.InOut'
+      });
     });
   }
 
@@ -287,13 +313,13 @@ class WorldMapScene extends Phaser.Scene {
       }
     ];
 
-    [...kokugoGames, ...sansuuGames].forEach(game => {
+    [...kokugoGames, ...sansuuGames].forEach((game, idx) => {
       const cleared = saveData?.games?.[game.key]?.cleared || false;
-      this._createGameButton(game.x, game.y, game, cleared);
+      this._createGameButton(game.x, game.y, game, cleared, idx);
     });
   }
 
-  _createGameButton(x, y, game, cleared) {
+  _createGameButton(x, y, game, cleared, gameIndex = 0) {
     const container = this.add.container(x, y).setDepth(15);
     const btnSize = 70;
 
@@ -329,6 +355,7 @@ class WorldMapScene extends Phaser.Scene {
     container.add([shadow, bg, icon, label]);
 
     bg.on('pointerdown', () => {
+      EffectManager.spawnButtonSpark(this, x, y);
       AudioManager.playSelect();
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.time.delayedCall(300, () => {
@@ -345,15 +372,26 @@ class WorldMapScene extends Phaser.Scene {
       this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 100 });
     });
 
-    // バウンスアニメ
+    // スタッガー登場アニメ (Back.easeOut)
+    const enterDelay = 200 + gameIndex * 100;
+    container.setAlpha(0).setY(y + 32).setScale(0.5);
     this.tweens.add({
       targets: container,
-      y: y - 4,
-      duration: 1200 + Math.random() * 600,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
-      delay: Math.random() * 800
+      alpha: 1, y, scaleX: 1, scaleY: 1,
+      duration: 420,
+      delay: enterDelay,
+      ease: 'Back.Out',
+      onComplete: () => {
+        // 登場後に浮遊アニメ開始
+        this.tweens.add({
+          targets: container,
+          y: y - 5,
+          duration: 1100 + gameIndex * 200,
+          yoyo: true, repeat: -1,
+          ease: 'Sine.InOut',
+          delay: gameIndex * 150
+        });
+      }
     });
   }
 

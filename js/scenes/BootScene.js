@@ -46,6 +46,105 @@ class BootScene extends Phaser.Scene {
     this._genTileTextures();
     this._genUITextures();
     this._genIconTextures();
+    this._genParticleTextures();
+  }
+
+  // ============ パーティクル用テクスチャ生成 ============
+  _genParticleTextures() {
+    // --- particle_dot (8×8) : ADDブレンド用の白い丸、光の粒 ---
+    const dotC = document.createElement('canvas');
+    dotC.width = 8; dotC.height = 8;
+    const dotCtx = dotC.getContext('2d');
+    const dotGrad = dotCtx.createRadialGradient(4, 4, 0, 4, 4, 4);
+    dotGrad.addColorStop(0, 'rgba(255,255,255,1)');
+    dotGrad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
+    dotGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    dotCtx.fillStyle = dotGrad;
+    dotCtx.fillRect(0, 0, 8, 8);
+    this.textures.addCanvas('particle_dot', dotC);
+
+    // --- particle_star (12×12) : ドット風★形 ---
+    const starC = document.createElement('canvas');
+    starC.width = 12; starC.height = 12;
+    const starCtx = starC.getContext('2d');
+    starCtx.imageSmoothingEnabled = false;
+    starCtx.fillStyle = '#ffffff';
+    // 簡易5角星
+    const cx = 6, cy = 6, pts = 5;
+    starCtx.beginPath();
+    for (let i = 0; i < pts * 2; i++) {
+      const r = i % 2 === 0 ? 5 : 2;
+      const a = (i * Math.PI / pts) - Math.PI / 2;
+      if (i === 0) starCtx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      else starCtx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    }
+    starCtx.closePath();
+    starCtx.fill();
+    this.textures.addCanvas('particle_star', starC);
+
+    // --- particle_spark (8×3) : 横長スパーク（ボタン火花用）---
+    const sparkC = document.createElement('canvas');
+    sparkC.width = 8; sparkC.height = 3;
+    const sparkCtx = sparkC.getContext('2d');
+    const sparkGrad = sparkCtx.createLinearGradient(0, 0, 8, 0);
+    sparkGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    sparkGrad.addColorStop(0.5, 'rgba(255,255,255,1)');
+    sparkGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    sparkCtx.fillStyle = sparkGrad;
+    sparkCtx.fillRect(0, 0, 8, 3);
+    this.textures.addCanvas('particle_spark', sparkC);
+
+    // --- particle_confetti (8×10) : 紙吹雪用長方形（各色） ---
+    const confettiColors = [
+      { key: 'particle_confetti_r', color: '#ff6b6b' },
+      { key: 'particle_confetti_y', color: '#ffe55c' },
+      { key: 'particle_confetti_b', color: '#00e5ff' },
+      { key: 'particle_confetti_g', color: '#00e676' },
+      { key: 'particle_confetti_p', color: '#ff9ff3' },
+      { key: 'particle_confetti_o', color: '#f5a623' }
+    ];
+    confettiColors.forEach(({ key, color }) => {
+      const cc = document.createElement('canvas');
+      cc.width = 8; cc.height = 10;
+      const cctx = cc.getContext('2d');
+      cctx.imageSmoothingEnabled = false;
+      cctx.fillStyle = color;
+      cctx.fillRect(0, 0, 8, 10);
+      // ピクセルアートらしいハイライト
+      cctx.fillStyle = 'rgba(255,255,255,0.4)';
+      cctx.fillRect(0, 0, 4, 3);
+      this.textures.addCanvas(key, cc);
+    });
+
+    // --- particle_heart (12×12) : ハート形 ---
+    const heartC = document.createElement('canvas');
+    heartC.width = 12; heartC.height = 12;
+    const heartCtx = heartC.getContext('2d');
+    heartCtx.imageSmoothingEnabled = false;
+    heartCtx.fillStyle = '#ff6b9d';
+    // ピクセルハート描画
+    const hpx = [[2,1],[3,1],[7,1],[8,1],[1,2],[2,2],[3,2],[4,2],[6,2],[7,2],[8,2],[9,2],
+      [0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[8,3],[9,3],[10,3],
+      [0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[8,4],[9,4],[10,4],
+      [1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],[8,5],[9,5],
+      [2,6],[3,6],[4,6],[5,6],[6,6],[7,6],[8,6],
+      [3,7],[4,7],[5,7],[6,7],[7,7],
+      [4,8],[5,8],[6,8],[5,9]];
+    hpx.forEach(([x, y]) => { heartCtx.fillRect(x, y, 1, 1); });
+    this.textures.addCanvas('particle_heart', heartC);
+
+    // --- particle_glow (16×16) : グロー円（ADD blend用の大きめ発光） ---
+    const glowC = document.createElement('canvas');
+    glowC.width = 16; glowC.height = 16;
+    const glowCtx = glowC.getContext('2d');
+    const glowGrad = glowCtx.createRadialGradient(8, 8, 0, 8, 8, 8);
+    glowGrad.addColorStop(0, 'rgba(255,255,220,1)');
+    glowGrad.addColorStop(0.3, 'rgba(255,220,100,0.8)');
+    glowGrad.addColorStop(0.7, 'rgba(255,150,50,0.3)');
+    glowGrad.addColorStop(1, 'rgba(255,100,0,0)');
+    glowCtx.fillStyle = glowGrad;
+    glowCtx.fillRect(0, 0, 16, 16);
+    this.textures.addCanvas('particle_glow', glowC);
   }
 
   _genPlayerSprite() {

@@ -93,15 +93,19 @@ canvas {
   font-family: var(--color-pixel-font);
   font-size: clamp(1.4rem, 5vw, 2.2rem);
   color: #f5a623;
-  text-shadow: 3px 3px 0 #e94560, 6px 6px 0 rgba(0,0,0,0.5);
+  text-shadow: 3px 3px 0 #e94560, 6px 6px 0 rgba(0,0,0,0.5), 0 0 20px rgba(245,166,35,0.6);
   letter-spacing: 2px;
   margin-bottom: 20px;
   animation: pulse-title 2s ease-in-out infinite;
 }
 
 @keyframes pulse-title {
-  0%, 100% { text-shadow: 3px 3px 0 #e94560, 6px 6px 0 rgba(0,0,0,0.5); }
-  50% { text-shadow: 3px 3px 0 #ff6b35, 0 0 20px rgba(245,166,35,0.8), 6px 6px 0 rgba(0,0,0,0.5); }
+  0%, 100% {
+    text-shadow: 3px 3px 0 #e94560, 6px 6px 0 rgba(0,0,0,0.5), 0 0 20px rgba(245,166,35,0.4);
+  }
+  50% {
+    text-shadow: 3px 3px 0 #ff6b35, 0 0 30px rgba(245,166,35,1), 0 0 60px rgba(245,166,35,0.5), 6px 6px 0 rgba(0,0,0,0.5);
+  }
 }
 
 .loading-char {
@@ -124,18 +128,24 @@ canvas {
   border-radius: 0;
   margin: 16px auto;
   overflow: hidden;
-  /* ピクセル風の角 */
-  box-shadow: 0 0 0 2px #0d0d1a, 0 0 0 4px #e94560, 0 0 20px rgba(233,69,96,0.3);
+  /* ネオン発光枠 */
+  box-shadow:
+    0 0 0 2px #0d0d1a,
+    0 0 0 4px #e94560,
+    0 0 16px rgba(233,69,96,0.5),
+    0 0 32px rgba(233,69,96,0.2);
   image-rendering: pixelated;
 }
 
 .loading-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #e94560, #f5a623, #00e5ff);
-  background-size: 200% 100%;
-  animation: loading-shimmer 1.5s linear infinite;
+  background: linear-gradient(90deg, #e94560, #f5a623, #00e5ff, #e94560);
+  background-size: 300% 100%;
+  animation: loading-shimmer 1.2s linear infinite;
   transition: width 0.3s ease;
+  /* バー自体も発光 */
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.8), 0 0 16px rgba(245, 166, 35, 0.4);
 }
 
 @keyframes loading-shimmer {

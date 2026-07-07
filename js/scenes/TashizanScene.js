@@ -252,6 +252,8 @@ class TashizanScene extends Phaser.Scene {
 
       const q = this._questions[this._qIndex];
       EffectManager.playCorrect(this, x, y - 40);
+      // 正解時のシェイク強化
+      this.cameras.main.shake(220, 0.012);
 
       // プレイヤーを前進させる
       this._advancePlayer(() => {
@@ -343,32 +345,39 @@ class TashizanScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const allCorrect = this._results.every(r => r);
 
-    if (allCorrect) {
-      AudioManager.playFanfare();
-      EffectManager.playPerfect(this);
-    }
-
-    // ゴールライン演出
+    // ゴールラインデモ
     this.tweens.add({
       targets: this._player,
       x: this._trackEndX - 25,
       duration: 800,
       ease: 'Power2',
       onComplete: () => {
+        // 金色フラッシュ★
+        this.cameras.main.flash(350, 255, 210, 50);
+        // 紙吹雪大量発生！
+        EffectManager.spawnGoalConfetti(this);
+        // ゴールバースト
+        EffectManager.spawnGlowBurst(this, this._trackEndX - 25, this._trackY);
+
         const flag = this.add.text(this._trackEndX - 25, this._trackY - 30, '🏁', {
           fontSize: '28px'
         }).setOrigin(0.5).setDepth(20);
         this.tweens.add({
           targets: flag,
-          scaleX: 1.3, scaleY: 1.3,
+          scaleX: 1.5, scaleY: 1.5,
           duration: 400, yoyo: true, repeat: 2
         });
       }
     });
 
+    if (allCorrect) {
+      AudioManager.playFanfare();
+      this.time.delayedCall(900, () => EffectManager.playPerfect(this));
+    }
+
     GameState.recordResult('addition', this._results);
 
-    this.time.delayedCall(2200, () => {
+    this.time.delayedCall(2800, () => {
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.time.delayedCall(300, () => {
         this.scene.start('ResultScene', {

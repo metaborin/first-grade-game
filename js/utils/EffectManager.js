@@ -1,36 +1,207 @@
 // ============================================
-// EffectManager - Phaser 3 パーティクル・演出
+// EffectManager - Phaser 3 パーティクル・演出 (強化版)
 // ============================================
 
 const EffectManager = {
+
+  // ============================================================
+  // ★ 新規エフェクト群 (Phaser 3.60+ API)
+  // ============================================================
+
+  // ============ ボタン押下火花 (小さなスパーク) ============
+  spawnButtonSpark(scene, x, y) {
+    // Phaser 3.60+ API: scene.add.particles(x, y, key, config)
+    const emitter = scene.add.particles(x, y, 'particle_spark', {
+      speed: { min: 60, max: 140 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 280,
+      quantity: 8,
+      tint: [0xffe55c, 0xf5a623, 0xff9ff3, 0x00e5ff],
+      blendMode: Phaser.BlendModes.ADD,
+      emitting: false
+    }).setDepth(500);
+
+    emitter.explode(8, 0, 0);
+    scene.time.delayedCall(350, () => { if (emitter && emitter.destroy) emitter.destroy(); });
+  },
+
+  // ============ ゴール紙吹雪 (上から降り注ぐ) ============
+  spawnGoalConfetti(scene) {
+    const { width } = scene.scale;
+    const confettiKeys = [
+      'particle_confetti_r', 'particle_confetti_y', 'particle_confetti_b',
+      'particle_confetti_g', 'particle_confetti_p', 'particle_confetti_o'
+    ];
+
+    confettiKeys.forEach((key, idx) => {
+      const emitter = scene.add.particles(width / 2, -20, key, {
+        x: { min: 0, max: width },
+        y: { min: -30, max: -5 },
+        speedX: { min: -80, max: 80 },
+        speedY: { min: 120, max: 300 },
+        angle: { min: 0, max: 360 },
+        angularVelocity: { min: -180, max: 180 },
+        scale: { start: 1.2, end: 0.6 },
+        alpha: { start: 1, end: 0.1 },
+        lifespan: { min: 1500, max: 2800 },
+        quantity: 4,
+        frequency: 60,
+        maxParticles: 40,
+        gravityY: 80
+      }).setDepth(350);
+
+      // 少し時間差で放出→止める
+      scene.time.delayedCall(1800, () => { if (emitter && emitter.stop) emitter.stop(); });
+      scene.time.delayedCall(4500, () => { if (emitter && emitter.destroy) emitter.destroy(); });
+    });
+  },
+
+  // ============ 虹色星パーティクル (正解時) ============
+  spawnRainbowStars(scene, x, y) {
+    const colors = [0xffe55c, 0xff6b6b, 0x6bcfff, 0xb5ff6b, 0xff9ff3, 0xf5a623, 0x00e5ff];
+
+    const emitter = scene.add.particles(x, y, 'particle_star', {
+      speed: { min: 80, max: 220 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1.5, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: { min: 500, max: 900 },
+      quantity: 16,
+      tint: colors,
+      blendMode: Phaser.BlendModes.ADD,
+      rotate: { min: 0, max: 360 },
+      emitting: false
+    }).setDepth(500);
+
+    emitter.explode(16, 0, 0);
+    scene.time.delayedCall(1000, () => { if (emitter && emitter.destroy) emitter.destroy(); });
+  },
+
+  // ============ 光のバースト (正解・ゴール時の輝き) ============
+  spawnGlowBurst(scene, x, y) {
+    // 大きなグロー中心から膨らむ光
+    const emitter = scene.add.particles(x, y, 'particle_glow', {
+      speed: { min: 10, max: 80 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 2.5, end: 0 },
+      alpha: { start: 0.9, end: 0 },
+      lifespan: { min: 300, max: 600 },
+      quantity: 10,
+      blendMode: Phaser.BlendModes.ADD,
+      emitting: false
+    }).setDepth(490);
+
+    emitter.explode(10, 0, 0);
+
+    // 中央の白フラッシュリング（Graphicsで表現）
+    const ring = scene.add.graphics().setDepth(495);
+    ring.lineStyle(4, 0xffffc0, 0.9);
+    ring.strokeCircle(x, y, 8);
+    scene.tweens.add({
+      targets: ring,
+      scaleX: 4, scaleY: 4,
+      alpha: 0,
+      duration: 400,
+      ease: 'Power2',
+      onComplete: () => ring.destroy()
+    });
+
+    scene.time.delayedCall(700, () => { if (emitter && emitter.destroy) emitter.destroy(); });
+  },
+
+  // ============ 汎用 ポップイン Tween ============
+  popInTween(scene, targets, delay = 0, ease = 'Back.Out') {
+    if (!Array.isArray(targets)) targets = [targets];
+    targets.forEach(t => {
+      if (t) { t.setScale(0); t.setAlpha(0); }
+    });
+    scene.tweens.add({
+      targets,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 380,
+      delay,
+      ease
+    });
+  },
+
+  // ============ 背景光の粒 (タイトル・ワールドマップ用) ============
+  createAnimatedBg(scene) {
+    const { width, height } = scene.scale;
+
+    // Phaser 3.60+ API
+    const emitter = scene.add.particles(width / 2, height / 2, 'particle_dot', {
+      x: { min: 0, max: width },
+      y: { min: 0, max: height },
+      speed: { min: 5, max: 25 },
+      angle: { min: 230, max: 310 },
+      scale: { start: 0.6, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      lifespan: { min: 2000, max: 4000 },
+      quantity: 1,
+      frequency: 120,
+      maxParticles: 30,
+      blendMode: Phaser.BlendModes.ADD
+    }).setDepth(1);
+
+    return emitter;
+  },
+
+  // ============ ハートバースト (名前確定演出) ============
+  spawnHeartBurst(scene, x, y) {
+    const emitter = scene.add.particles(x, y, 'particle_heart', {
+      speed: { min: 60, max: 180 },
+      angle: { min: -160, max: -20 },
+      scale: { start: 1.5, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: { min: 600, max: 1200 },
+      quantity: 12,
+      gravityY: 120,
+      emitting: false
+    }).setDepth(500);
+
+    emitter.explode(12, 0, 0);
+    scene.time.delayedCall(1300, () => { if (emitter && emitter.destroy) emitter.destroy(); });
+  },
+
+  // ============================================================
+  // ★ 既存エフェクト（強化版）
+  // ============================================================
+
   // ============ 正解エフェクト（フル演出）============
   playCorrect(scene, x, y) {
-    this.flashScreen(scene, 0xffffff, 200);
-    this.spawnStars(scene, x, y);
-    this.spawnConfetti(scene);
+    this.flashScreen(scene, 0xffffff, 180);
+    this.shakeScreen(scene, 200, 0.010);
+    this.spawnRainbowStars(scene, x, y);
+    this.spawnGlowBurst(scene, x, y);
     this.showPraiseText(scene, x, y - 60);
   },
 
   // ============ 大正解エフェクト（ゲームクリア）============
   playPerfect(scene) {
-    this.flashScreen(scene, 0xffe55c, 300);
+    this.flashScreen(scene, 0xffe55c, 350);
+    scene.cameras.main.shake(300, 0.015);
     const cx = scene.scale.width / 2;
     const cy = scene.scale.height / 2;
-    this.spawnStars(scene, cx, cy, 40);
-    this.spawnConfetti(scene, 80);
+    this.spawnRainbowStars(scene, cx, cy);
+    this.spawnGlowBurst(scene, cx, cy);
+    this.spawnGoalConfetti(scene);
     this.showClearText(scene);
   },
 
   // ============ 不正解エフェクト ============
   playWrong(scene) {
-    this.shakeScreen(scene, 300);
+    this.shakeScreen(scene, 350, 0.014);
     this.showWrongText(scene);
   },
 
   // ============ 画面フラッシュ ============
   flashScreen(scene, color = 0xffffff, duration = 200) {
     const { width, height } = scene.scale;
-    const flash = scene.add.rectangle(width / 2, height / 2, width, height, color, 0.85)
+    const flash = scene.add.rectangle(width / 2, height / 2, width, height, color, 0.75)
       .setDepth(1000);
     scene.tweens.add({
       targets: flash,
@@ -42,11 +213,11 @@ const EffectManager = {
   },
 
   // ============ 画面シェイク ============
-  shakeScreen(scene, duration = 300) {
-    scene.cameras.main.shake(duration, 0.012);
+  shakeScreen(scene, duration = 300, intensity = 0.012) {
+    scene.cameras.main.shake(duration, intensity);
   },
 
-  // ============ 星パーティクル ============
+  // ============ 星パーティクル (レガシー・Graphics版) ============
   spawnStars(scene, x, y, count = 20) {
     const colors = [0xffe55c, 0xff6b6b, 0x6bcfff, 0xb5ff6b, 0xff9ff3];
     for (let i = 0; i < count; i++) {
@@ -57,7 +228,6 @@ const EffectManager = {
       const size = 6 + Math.random() * 10;
       const color = colors[Math.floor(Math.random() * colors.length)];
 
-      // ★形を描画（Graphics）
       const star = scene.add.graphics().setDepth(500);
       star.fillStyle(color, 1);
       this._drawStar(star, 0, 0, size / 2, size, 5);
@@ -79,7 +249,7 @@ const EffectManager = {
     }
   },
 
-  // ============ 紙吹雪 ============
+  // ============ 紙吹雪 (レガシー・Graphics版) ============
   spawnConfetti(scene, count = 50) {
     const { width } = scene.scale;
     const colors = [0xe94560, 0xf5a623, 0x00e5ff, 0x00e676, 0xff9ff3, 0xffe55c];
@@ -188,9 +358,11 @@ const EffectManager = {
     const cx = scene.scale.width / 2;
     const cy = scene.scale.height / 2;
 
-    const bg = scene.add.rectangle(cx, cy, 380, 120, 0x0d0d1a, 0.85)
+    const bg = scene.add.rectangle(cx, cy, 380, 120, 0x0d0d1a, 0.88)
       .setDepth(595)
       .setStrokeStyle(4, 0xf5a623);
+    bg.setScale(0.2);
+    bg.setAlpha(0);
 
     const t = scene.add.text(cx, cy, 'クリア！！', {
       fontFamily: 'DotGothic16, monospace',
@@ -206,11 +378,11 @@ const EffectManager = {
       alpha: 1,
       scaleX: 1,
       scaleY: 1,
-      duration: 400,
+      duration: 450,
       ease: 'Back.Out'
     });
 
-    scene.time.delayedCall(2000, () => {
+    scene.time.delayedCall(2200, () => {
       scene.tweens.add({
         targets: [t, bg],
         alpha: 0,
@@ -258,7 +430,7 @@ const EffectManager = {
     };
   },
 
-  // ============ ドット風ボタン生成ヘルパー ============
+  // ============ ドット風ボタン生成ヘルパー（火花付き強化版）============
   createPixelButton(scene, x, y, text, width = 200, height = 52, opts = {}) {
     const {
       bgColor = 0xe94560,
@@ -282,7 +454,8 @@ const EffectManager = {
       fontSize,
       color: textColor,
       stroke: '#00000066',
-      strokeThickness: 2
+      strokeThickness: 2,
+      shadow: { offsetX: 2, offsetY: 2, color: '#00000088', fill: true }
     }).setOrigin(0.5);
 
     container.add([shadow, btn, label]);
@@ -292,11 +465,15 @@ const EffectManager = {
       label.setInteractive({ useHandCursor: true });
 
       const press = () => {
+        // ボタン押下時の火花エフェクト
+        const worldPos = container.getWorldTransformMatrix();
+        EffectManager.spawnButtonSpark(scene, worldPos.tx, worldPos.ty);
+
         scene.tweens.add({
           targets: container,
           x: x + 2,
           y: y + 2,
-          duration: 60,
+          duration: 55,
           yoyo: true,
           onComplete: onClick
         });
@@ -306,8 +483,14 @@ const EffectManager = {
       btn.on('pointerdown', press);
       label.on('pointerdown', press);
 
-      btn.on('pointerover', () => btn.setFillStyle(Phaser.Display.Color.IntegerToColor(bgColor).lighten(10).color));
-      btn.on('pointerout', () => btn.setFillStyle(bgColor));
+      btn.on('pointerover', () => {
+        btn.setFillStyle(Phaser.Display.Color.IntegerToColor(bgColor).lighten(12).color);
+        scene.tweens.add({ targets: container, scaleX: 1.04, scaleY: 1.04, duration: 80 });
+      });
+      btn.on('pointerout', () => {
+        btn.setFillStyle(bgColor);
+        scene.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 80 });
+      });
     }
 
     return container;

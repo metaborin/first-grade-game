@@ -222,6 +222,8 @@ class HikizanScene extends Phaser.Scene {
       btn.setFillStyle(0x1a5a2a).setStrokeStyle(3, 0x00e676);
       AudioManager.playCorrect();
       EffectManager.playCorrect(this, x, y - 40);
+      // 正解時シェイク強化
+      this.cameras.main.shake(220, 0.012);
 
       this._advancePlayer(() => {
         this.time.delayedCall(500, () => this._nextQuestion());
@@ -297,31 +299,39 @@ class HikizanScene extends Phaser.Scene {
 
   _showFinalResult() {
     const allCorrect = this._results.every(r => r);
-    if (allCorrect) {
-      AudioManager.playFanfare();
-      EffectManager.playPerfect(this);
-    }
 
+    // ゴールラインデモ
     this.tweens.add({
       targets: this._player,
       x: this._trackEndX - 25,
       duration: 800,
       ease: 'Power2',
       onComplete: () => {
+        // 金色フラッシュ
+        this.cameras.main.flash(350, 255, 210, 50);
+        // 紙吹雪大量発生！
+        EffectManager.spawnGoalConfetti(this);
+        EffectManager.spawnGlowBurst(this, this._trackEndX - 25, this._trackY);
+
         const flag = this.add.text(this._trackEndX - 25, this._trackY - 30, '🏁', {
           fontSize: '28px'
         }).setOrigin(0.5).setDepth(20);
         this.tweens.add({
           targets: flag,
-          scaleX: 1.3, scaleY: 1.3,
+          scaleX: 1.5, scaleY: 1.5,
           duration: 400, yoyo: true, repeat: 2
         });
       }
     });
 
+    if (allCorrect) {
+      AudioManager.playFanfare();
+      this.time.delayedCall(900, () => EffectManager.playPerfect(this));
+    }
+
     GameState.recordResult('subtraction', this._results);
 
-    this.time.delayedCall(2200, () => {
+    this.time.delayedCall(2800, () => {
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.time.delayedCall(300, () => {
         this.scene.start('ResultScene', {

@@ -33,10 +33,15 @@ class ResultScene extends Phaser.Scene {
     // 演出
     if (isPerfect) {
       AudioManager.playFanfare();
+      // 金色フラッシュ + 紙吹雪豪華演出
+      this.cameras.main.flash(400, 255, 215, 50);
       this.time.delayedCall(200, () => EffectManager.playPerfect(this));
     } else if (isCleared) {
       AudioManager.playLevelUp();
-      this.time.delayedCall(200, () => EffectManager.spawnConfetti(this, 30));
+      this.time.delayedCall(200, () => {
+        EffectManager.spawnGoalConfetti(this);
+        this.cameras.main.flash(250, 200, 255, 150);
+      });
     } else {
       // 惜しい演出
       this.time.delayedCall(300, () => {
@@ -131,7 +136,13 @@ class ResultScene extends Phaser.Scene {
     this.tweens.add({
       targets: scoreText,
       alpha: 1, scaleX: 1, scaleY: 1,
-      duration: 600, delay: 300, ease: 'Back.Out'
+      duration: 600, delay: 300, ease: 'Back.Out',
+      onComplete: () => {
+        // スコア登場時に更に演出を強化
+        const cx = this.scale.width / 2;
+        const cy = this.scale.height * 0.3 - 8;
+        EffectManager.spawnRainbowStars(this, cx, cy);
+      }
     });
 
     // 「/ total もん」
@@ -198,15 +209,22 @@ class ResultScene extends Phaser.Scene {
         alpha: 1, scaleX: 1, scaleY: 1,
         duration: 400,
         delay: 800 + i * 200,
-        ease: 'Back.Out'
+        ease: 'Back.Out',
+        onComplete: () => {
+          if (isFilled) {
+            // ★登場時に光のバースト
+            EffectManager.spawnGlowBurst(this, x, starY);
+          }
+        }
       });
 
       if (isFilled) {
-        this.time.delayedCall(800 + i * 200 + 400, () => {
+        this.time.delayedCall(800 + i * 200 + 500, () => {
           this.tweens.add({
             targets: starIcon,
-            angle: 10,
-            duration: 400, yoyo: true, repeat: 1
+            angle: 12,
+            scaleX: 1.1, scaleY: 1.1,
+            duration: 350, yoyo: true, repeat: 1
           });
         });
       }

@@ -236,6 +236,10 @@ class KatakanaScene extends Phaser.Scene {
       // 撃破エフェクト
       this.time.delayedCall(100, () => {
         EffectManager.playCorrect(this, x, monsterY);
+        // 虹色星パーティクル追加
+        EffectManager.spawnRainbowStars(this, x, monsterY);
+        // シェイク強化
+        this.cameras.main.shake(200, 0.011);
       });
 
       this.time.delayedCall(1500, () => this._nextQuestion());
@@ -269,9 +273,18 @@ class KatakanaScene extends Phaser.Scene {
   }
 
   _showFinalResult() {
+    const correct = this._results.filter(r => r).length;
+    const total = this._results.length;
+
+    // クリア演出
+    if (correct >= Math.ceil(total * 0.6)) {
+      EffectManager.spawnGoalConfetti(this);
+      this.cameras.main.flash(300, 255, 210, 100);
+    }
+
     GameState.recordResult('katakana', this._results);
-    this.cameras.main.fadeOut(300, 0, 0, 0);
-    this.time.delayedCall(300, () => {
+    this.cameras.main.fadeOut(400, 0, 0, 0);
+    this.time.delayedCall(400, () => {
       this.scene.start('ResultScene', {
         gameKey: 'katakana',
         results: this._results,
