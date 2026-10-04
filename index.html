@@ -11,13 +11,28 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
   <title>まなびのくに RPG</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/pwa.css">
+  <script src="js/pwa.js" defer></script>
 </head>
 <body>
+  <header id="pwa-bar" aria-label="アプリとオフラインの案内">
+    <span id="pwa-status" role="status" aria-live="polite">オフラインの じゅんびを かくにん中</span>
+    <button type="button" id="pwa-help">アプリの あんない</button>
+  </header>
+  <dialog id="pwa-dialog" aria-labelledby="pwa-dialog-title">
+    <h1 id="pwa-dialog-title" tabindex="-1">アプリの あんない</h1>
+    <p id="pwa-detail">インターネットにつないで、オフラインの準備が終わるまでお待ちください。</p>
+    <p id="pwa-update" hidden>新しい版の準備ができました。学習を結果画面まで終えると記録が保存されます。このゲームのタブとアプリをすべて閉じて、開き直すと更新されます。</p>
+    <h2>アプリとして つかう</h2>
+    <p id="pwa-install-help">ブラウザのメニューに「アプリをインストール」などの項目があれば選びます。表示されない場合も、このページで遊べます。</p>
+    <button type="button" id="pwa-install" hidden>アプリを インストール</button>
+    <h2>きろくと オフライン</h2>
+    <p>学習の結果はこの端末のブラウザに保存されます。問題の途中は保存されないので、結果画面まで進んでから閉じてください。端末やブラウザを変えると記録は引き継がれません。</p>
+    <p>「オフラインの じゅんび OK」が出た後は、通信なしでも起動できます。ブラウザのデータを消した場合などは、もう一度インターネットにつないで準備してください。</p>
+    <div class="pwa-actions"><button type="button" id="pwa-retry">じゅんびを かくにん</button><button type="button" id="pwa-close">ゲームに もどる</button></div>
+  </dialog>
   <div id="game-container"></div>
   <div id="loading-screen">
     <div class="loading-pixel-art">
@@ -30,8 +45,8 @@
     </div>
   </div>
 
-  <!-- Phaser 3 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <!-- Same Phaser version, bundled with its MIT license for offline use. -->
+  <script src="vendor/phaser-3.80.1.min.js"></script>
 
   <!-- Game Modules -->
   <script src="js/data/hiraganaQuestions.js"></script>
@@ -53,15 +68,5 @@
   <script src="js/scenes/ResultScene.js"></script>
   <script src="js/main.js"></script>
 
-  <script>
-    // PWA Service Worker 登録
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW registered:', reg.scope))
-          .catch(err => console.log('SW registration failed:', err));
-      });
-    }
-  </script>
 </body>
 </html>

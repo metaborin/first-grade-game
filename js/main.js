@@ -79,34 +79,15 @@ const game = new Phaser.Game(config);
 
 // ウィンドウリサイズ対応
 window.addEventListener('resize', () => {
-  game.scale.refresh();
+  // Read the reserved game area before fitting the canvas (the PWA bar is outside it).
+  const parent = document.getElementById('game-container');
+  game.scale.setParentSize(parent.clientWidth, parent.clientHeight);
 });
 
 // スリープ/ウェイク対応（モバイル）
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     AudioManager.stopBGM();
-  }
-});
-
-// PWAインストールプロンプト
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const banner = document.getElementById('pwa-install-banner');
-  if (banner) {
-    banner.classList.add('visible');
-    const btn = document.getElementById('pwa-install-btn');
-    if (btn) {
-      btn.addEventListener('click', () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-          deferredPrompt = null;
-          banner.classList.remove('visible');
-        });
-      });
-    }
   }
 });
 

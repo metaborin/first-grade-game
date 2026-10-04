@@ -2,8 +2,10 @@
   "name": "まなびのくに RPG",
   "short_name": "まなびRPG",
   "description": "小学1年生向け国語・算数学習RPGゲーム",
-  "start_url": "./index.html",
-  "display": "fullscreen",
+  "id": "/first-grade-game/index.html",
+  "start_url": "/first-grade-game/index.html",
+  "scope": "/first-grade-game/",
+  "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#1a1a2e",
   "theme_color": "#e94560",
@@ -14,13 +16,19 @@
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [],

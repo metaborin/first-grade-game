@@ -1,0 +1,17 @@
+:root { --pwa-bar-height: 56px; }
+#pwa-bar { position: fixed; inset: 0 0 auto; height: var(--pwa-bar-height); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 10px; z-index: 10000; background: #172033; color: #fff; border-bottom: 2px solid #e94560; font: 13px/1.35 system-ui, sans-serif; }
+#pwa-status { min-width: 0; }
+#pwa-bar button, #pwa-dialog button { min-height: 44px; border: 2px solid #e8bc5a; border-radius: 7px; padding: 8px 12px; background: #25334d; color: #fff; font: bold 14px/1.4 system-ui, sans-serif; cursor: pointer; }
+#pwa-bar button { flex-shrink: 0; }
+#pwa-bar button:focus-visible, #pwa-dialog button:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
+#game-container { position: absolute; top: var(--pwa-bar-height); width: 100%; height: calc(100% - var(--pwa-bar-height)); }
+#loading-screen { top: var(--pwa-bar-height); height: calc(100% - var(--pwa-bar-height)); }
+#pwa-dialog { margin: auto; width: min(94vw, 520px); max-height: 90vh; padding: 22px; border: 2px solid #f5a623; border-radius: 12px; background: #172033; color: #fff; overflow: auto; font: 16px/1.75 system-ui, sans-serif; user-select: text; }
+#pwa-dialog::backdrop { background: #000b; }
+#pwa-dialog h1 { font-size: 23px; margin-bottom: 16px; }
+#pwa-dialog h2 { font-size: 17px; margin-top: 20px; }
+#pwa-dialog p { margin: 10px 0; }
+#pwa-update { padding: 12px; border-left: 4px solid #f5a623; background: #283851; }
+.pwa-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+#pwa-dialog [hidden] { display: none; }
+@media (max-width: 400px) { #pwa-bar { font-size: 11px; padding-inline: 6px; } #pwa-bar button { padding-inline: 8px; font-size: 12px; } }

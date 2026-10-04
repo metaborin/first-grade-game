@@ -1,38 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head><title>アイコン生成</title></head>
-<body>
-<canvas id="c192" width="192" height="192"></canvas>
-<canvas id="c512" width="512" height="512"></canvas>
+<!doctype html>
+<html lang="ja"><meta charset="utf-8"><title>まなびRPG オリジナルアイコン</title>
+<body><h1>まなびRPG オリジナルアイコン</h1><p>このプロジェクト用に描いた、星の帽子と学びの本です。アイコンを押すと保存できます。</p>
 <script>
-function drawIcon(canvas, size) {
-  const ctx = canvas.getContext('2d');
-  const grad = ctx.createLinearGradient(0,0,size,size);
-  grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(1,'#16213e');
-  ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
-  ctx.strokeStyle='#e94560'; ctx.lineWidth=size*0.05;
-  ctx.strokeRect(size*0.06,size*0.06,size*0.88,size*0.88);
-  // 帽子
-  ctx.fillStyle='#6b3aff';
-  ctx.beginPath(); ctx.moveTo(size*.5,size*.1); ctx.lineTo(size*.36,size*.38); ctx.lineTo(size*.64,size*.38); ctx.closePath(); ctx.fill();
-  // ローブ
-  ctx.fillStyle='#3a6bff'; ctx.fillRect(size*.35,size*.38,size*.3,size*.28);
-  // 星
-  ctx.fillStyle='#ffe55c'; ctx.font='bold '+Math.floor(size*.14)+'px serif';
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('★',size*.5,size*.28);
-  // テキスト
-  ctx.fillStyle='#f5a623'; ctx.font='bold '+Math.floor(size*.09)+'px sans-serif';
-  ctx.textBaseline='alphabetic'; ctx.fillText('まなびRPG',size*.5,size*.85);
+// Original geometric artwork; no fonts, emoji or external images required.
+function drawIcon(canvas, size, maskable = false) {
+  canvas.width = canvas.height = size;
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#172033'; context.fillRect(0, 0, size, size);
+  context.save();
+  const scale = size / 32 * (maskable ? 0.74 : 0.94);
+  context.translate(size / 2, size / 2); context.scale(scale, scale); context.translate(-16, -16);
+  function rect(x, y, w, h, color) { context.fillStyle = color; context.fillRect(x, y, w, h); }
+  rect(7, 15, 18, 10, '#526ff0'); rect(9, 13, 14, 8, '#ffc7a1');
+  rect(10, 15, 3, 3, '#172033'); rect(19, 15, 3, 3, '#172033');
+  rect(14, 19, 4, 1, '#b35a5b');
+  context.fillStyle = '#a68aff'; context.beginPath(); context.moveTo(16, 3); context.lineTo(24, 14); context.lineTo(8, 14); context.closePath(); context.fill();
+  rect(6, 13, 20, 3, '#815bd5');
+  rect(15, 6, 2, 7, '#ffe071'); rect(13, 8, 6, 2, '#ffe071');
+  rect(5, 23, 22, 6, '#e6a94d'); rect(6, 22, 9, 6, '#fff4cf'); rect(17, 22, 9, 6, '#fff4cf');
+  rect(15, 23, 2, 6, '#c38132'); rect(8, 24, 5, 1, '#947564'); rect(19, 24, 5, 1, '#947564');
+  context.restore();
 }
-drawIcon(document.getElementById('c192'),192);
-drawIcon(document.getElementById('c512'),512);
-// ダウンロードリンクを自動クリック
-['192','512'].forEach(s => {
-  const c = document.getElementById('c'+s);
-  const a = document.createElement('a');
-  a.download='icon-'+s+'.png'; a.href=c.toDataURL('image/png');
-  document.body.appendChild(a); a.click();
-});
-</script>
-</body>
-</html>
+for (const [size, maskable] of [[192, false], [512, false], [512, true]]) {
+  const canvas = document.createElement('canvas'); drawIcon(canvas, size, maskable);
+  canvas.id = maskable ? 'icon-maskable-512' : 'icon-' + size;
+  canvas.style.width = '192px'; canvas.style.height = '192px';
+  const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = canvas.id + '.png';
+  link.append(canvas); document.body.append(link);
+}
+</script></body></html>

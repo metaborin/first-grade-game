@@ -3,7 +3,13 @@
    ピクセルアートにじみ防止・レスポンシブ対応
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+@font-face {
+  font-family: 'DotGothic16';
+  src: url('../vendor/DotGothic16-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
 
 /* ============ CSS リセット ============ */
 *, *::before, *::after {

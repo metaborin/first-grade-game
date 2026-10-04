@@ -1,113 +1,74 @@
-// Service Worker for まなびのくに RPG
-const CACHE_NAME = 'manabi-rpg-v4';
-// CacheStorage is shared by every app on this origin. Only delete exact names
-// verified in this app's history (19f80a9, 95af313, e738ec2, 911aec3).
-// When changing CACHE_NAME, keep its previous value in this allowlist.
+// まなびのくに RPG: keep an open lesson on its current version.
+const CACHE_NAME = 'manabi-rpg-v5';
+// CacheStorage is origin-wide: only exact names owned by this app may be removed.
+// v1-v4: 19f80a9, 95af313, e738ec2, 911aec3. Bump CACHE_NAME on asset changes
+// and keep its previous value in this allowlist. Never use a broad prefix match.
 const OWNED_CACHE_NAMES = new Set([
-  'manabi-rpg-v1',
-  'manabi-rpg-v2',
-  'manabi-rpg-v3',
-  'manabi-rpg-v4'
+  'manabi-rpg-v1', 'manabi-rpg-v2', 'manabi-rpg-v3', 'manabi-rpg-v4', 'manabi-rpg-v5'
 ]);
-
-// キャッシュするファイルリスト
 const PRECACHE_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './css/style.css',
-  './js/main.js',
-  './js/data/hiraganaQuestions.js',
-  './js/data/katakanaQuestions.js',
-  './js/data/mathQuestions.js',
-  './js/data/playerData.js',
-  './js/utils/AudioManager.js',
-  './js/utils/EffectManager.js',
-  './js/scenes/BootScene.js',
-  './js/scenes/TitleScene.js',
-  './js/scenes/SelectSaveScene.js',
-  './js/scenes/NameInputScene.js',
-  './js/scenes/SettingsScene.js',
-  './js/scenes/WorldMapScene.js',
-  './js/scenes/HiraganaScene.js',
-  './js/scenes/KatakanaScene.js',
-  './js/scenes/TashizanScene.js',
-  './js/scenes/HikizanScene.js',
+  './', './index.html', './manifest.json', './css/style.css', './css/pwa.css',
+  './js/main.js', './js/pwa.js',
+  './js/data/hiraganaQuestions.js', './js/data/katakanaQuestions.js',
+  './js/data/mathQuestions.js', './js/data/playerData.js',
+  './js/utils/AudioManager.js', './js/utils/EffectManager.js',
+  './js/scenes/BootScene.js', './js/scenes/TitleScene.js',
+  './js/scenes/SelectSaveScene.js', './js/scenes/NameInputScene.js',
+  './js/scenes/SettingsScene.js', './js/scenes/WorldMapScene.js',
+  './js/scenes/HiraganaScene.js', './js/scenes/KatakanaScene.js',
+  './js/scenes/TashizanScene.js', './js/scenes/HikizanScene.js',
   './js/scenes/ResultScene.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  'https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js',
-  'https://fonts.googleapis.com/css2?family=DotGothic16&display=swap'
+  './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
+  './vendor/phaser-3.80.1.min.js', './vendor/DotGothic16-Regular.ttf'
 ];
 
-// インストール時：全アセットをキャッシュ
+async function offlineStatus() {
+  const cache = await caches.open(CACHE_NAME);
+  const responses = await Promise.all(PRECACHE_ASSETS.map(asset =>
+    cache.match(new URL(asset, self.registration.scope).href)));
+  const missingCount = responses.filter(response => !response || !response.ok).length;
+  return { type: 'OFFLINE_STATUS', ready: missingCount === 0, version: CACHE_NAME, missingCount };
+}
+
 self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[SW] Pre-caching assets');
-        // 個別にキャッシュ（一つ失敗しても続行）
-        return Promise.allSettled(
-          PRECACHE_ASSETS.map(url =>
-            cache.add(url).catch(err => console.warn('[SW] Cache skip:', url, err))
-          )
-        );
-      })
-      .then(() => self.skipWaiting())
-  );
+  // addAll is atomic: any missing/failed required asset rejects installation.
+  // Do not delete the working previous cache and do not skip waiting.
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(
+    PRECACHE_ASSETS.map(asset => new Request(new URL(asset, self.registration.scope), { cache: 'reload' }))
+  )));
 });
 
-// アクティベート時：古いキャッシュを削除
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME && OWNED_CACHE_NAMES.has(key))
-          .map(key => {
-            console.log('[SW] Deleting old cache:', key);
-            return caches.delete(key);
-          })
-      ))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    if (!(await offlineStatus()).ready) return;
+    const names = await caches.keys();
+    await Promise.all(names
+      .filter(name => name !== CACHE_NAME && OWNED_CACHE_NAMES.has(name))
+      .map(name => caches.delete(name)));
+    await self.clients.claim();
+  })());
 });
 
-// フェッチ時：Cache First（アセット）/ Network First（HTML）
+self.addEventListener('message', event => {
+  if (event.data?.type !== 'GET_OFFLINE_STATUS' || !event.ports?.[0]) return;
+  event.waitUntil(offlineStatus()
+    .then(status => event.ports[0].postMessage(status))
+    .catch(() => event.ports[0].postMessage({ type: 'OFFLINE_STATUS', ready: false, version: CACHE_NAME })));
+});
+
 self.addEventListener('fetch', event => {
-  const { request } = event;
+  const request = event.request;
   const url = new URL(request.url);
-
-  // HTMLファイルは Network First
-  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // その他は Cache First
-  event.respondWith(
-    caches.match(request)
-      .then(cached => {
-        if (cached) return cached;
-        return fetch(request)
-          .then(response => {
-            if (!response || response.status !== 200 || response.type === 'error') {
-              return response;
-            }
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-            return response;
-          });
-      })
-  );
+  if (request.method !== 'GET' || !url.href.startsWith(self.registration.scope)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // Match the same canonical URL used during preparation, without navigation headers.
+    const cached = await cache.match(url.origin + url.pathname);
+    if (cached) return cached;
+    try { return await fetch(request); }
+    catch (error) {
+      if (request.mode === 'navigate') return (await cache.match(new URL('./index.html', self.registration.scope).href)) || Response.error();
+      throw error;
+    }
+  })());
 });
