@@ -1,5 +1,14 @@
 // Service Worker for まなびのくに RPG
 const CACHE_NAME = 'manabi-rpg-v4';
+// CacheStorage is shared by every app on this origin. Only delete exact names
+// verified in this app's history (19f80a9, 95af313, e738ec2, 911aec3).
+// When changing CACHE_NAME, keep its previous value in this allowlist.
+const OWNED_CACHE_NAMES = new Set([
+  'manabi-rpg-v1',
+  'manabi-rpg-v2',
+  'manabi-rpg-v3',
+  'manabi-rpg-v4'
+]);
 
 // キャッシュするファイルリスト
 const PRECACHE_ASSETS = [
@@ -56,7 +65,7 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(
         keys
-          .filter(key => key !== CACHE_NAME)
+          .filter(key => key !== CACHE_NAME && OWNED_CACHE_NAMES.has(key))
           .map(key => {
             console.log('[SW] Deleting old cache:', key);
             return caches.delete(key);
